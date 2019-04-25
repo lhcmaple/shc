@@ -3,6 +3,7 @@
 int main(int argc,char *argv[])
 {
     char cmd[CMDLINE_MAX];
+
     while(1)
     {
         printf("shc:%s$",getcwd(cmd,CMDLINE_MAX));
