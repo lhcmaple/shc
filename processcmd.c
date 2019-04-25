@@ -55,7 +55,7 @@ void separatecmd(char *cmd,char *cmd_arg[])
             break;
         }
         cmd_arg[i]=cmd;
-        while(*cmd!=' '&&*cmd!='\t'&&*cmd)
+        while(*cmd!=' '&&*cmd!='\t'&&*cmd)/*跳到下一参数*/
             ++cmd;
     }
     return;
