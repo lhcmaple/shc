@@ -4,7 +4,7 @@
     '>', '<', '$', '`',
     '&', '(', ')', ' ',
     '\t','{', '}', '"',
-    '\''
+    '\'','|', ';',
 */
 
 char *cmd_arg[MAX_ARG];/*字符指针数组*/
@@ -22,23 +22,49 @@ int processcmd(char *cmd)
     pid_t pid;
 
     separatecmd(cmd);
-    pid=fork();/*程序在此处分界*/
-    if(pid<0)
-        printf("error in executing \"%s\"\n",cmd);
-    else if(pid==0)/*子程序*/
+    if(cmd_arg[0])
     {
-        p=cmd_arg[0];
-        cmd_arg[0]=strrchr(p,'/');
-        cmd_arg[0]=cmd_arg[0]?cmd_arg[0]:p;/*防止为空指针*/
-        if(execvp(cmd_arg[0],cmd_arg))
+        int i=0;
+        while(cmd_part[i])
         {
-            printf("error in executing \"%s\"\n",cmd);
-            exit(-1);
+            printf("%s\n",**cmd_part[i]);
+            sleep(1);
+            ++i;
         }
-        /*子程序的终止处*/
+        printf("\n");
+        i=0;
+        while(cmd_pipe[i])
+        {
+            printf("%s\n",*cmd_pipe[i]);
+            sleep(1);
+            ++i;
+        }
+        printf("\n");
+        i=0;
+        while(cmd_arg[i])
+        {
+            printf("%s\n",cmd_arg[i]);
+            sleep(1);
+            ++i;
+        }
     }
-    /*父程序*/
-    wait(NULL);
+    // pid=fork();/*程序在此处分界*/
+    // if(pid<0)
+    //     printf("error in executing \"%s\"\n",cmd);
+    // else if(pid==0)/*子程序*/
+    // {
+    //     p=cmd_arg[0];
+    //     cmd_arg[0]=strrchr(p,'/');
+    //     cmd_arg[0]=cmd_arg[0]?cmd_arg[0]:p;/*防止为空指针*/
+    //     if(execvp(cmd_arg[0],cmd_arg))
+    //     {
+    //         printf("error in executing \"%s\"\n",cmd);
+    //         exit(-1);
+    //     }
+    //     /*子程序的终止处*/
+    // }
+    // /*父程序*/
+    // wait(NULL);
     return 0;/*默认返回状态为0*/
 }
 
@@ -48,45 +74,46 @@ int processcmd(char *cmd)
 int separatecmd(char *cmd)
 {
     int i_arg=0,i_pipe=0,i_part=0;
-    int b_arg=0,b_pipe=0,b_part=0;
 
-    cmd=delfrontspace(cmd);
-    cmd_arg[i_arg++]=cmd;
-    cmd_pipe[i_pipe++]=cmd;
-    cmd_part[i_part++]=cmd;
-    while(*cmd)
+    // cmd=delfrontspace(cmd);
+    // if(*cmd=='\0')/*命令全为空格和Tab*/
+    // {
+    //     cmd_arg[0]=NULL;
+    //     cmd_pipe[0]=NULL;
+    //     cmd_part[0]=NULL;
+    //     return 0;
+    // }
+
+    cmd_pipe[i_pipe]=&cmd_arg[i_arg];
+    cmd_part[i_part]=&cmd_pipe[i_pipe];
+    ++i_pipe;
+    ++i_part;
+
+    while(1)
     {
-        if(*cmd==' '||*cmd=='\t')/*去除所有空格与Tab*/
-        {
-            ++cmd;
-            b_arg=1;
-            continue;
-        }
+        cmd=delfrontspace(cmd);
+        if(*cmd=='\0')
+            break;
         if(*cmd=='|')
         {
-            ++cmd;
+            *(cmd++)='\0';
             cmd=delfrontspace(cmd);
-            b_pipe=1;
+            cmd_pipe[i_pipe]=&cmd_arg[i_arg];
+            ++i_pipe;
         }
         if(*cmd==';')
         {
-            ++cmd;
+            *(cmd++)='\0';
             cmd=delfrontspace(cmd);
-            b_part=1;
+            cmd_pipe[i_pipe]=&cmd_arg[i_arg];
+            cmd_part[i_part]=&cmd_pipe[i_pipe];
+            ++i_pipe;
+            ++i_part;
         }
-        if(b_part)
-        {
-
-        }
-        if(b_pipe)
-        {
-
-        }
-        if(b_arg)
-        {
-
-        }
-        ++cmd;
+        cmd_arg[i_arg]=cmd;
+        ++i_arg;
+        while(*cmd&&*cmd!=' '&&*cmd!='\t'&&*cmd!='|'&&*cmd!=';')
+            ++cmd;
     }
     cmd_arg[i_arg]=NULL;
     cmd_pipe[i_pipe]=NULL;
