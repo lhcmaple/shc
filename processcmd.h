@@ -7,6 +7,7 @@
 #include<sys/wait.h>
 
 #include"opt.h"
+#include"stringproc.h"
 
 int processcmd(char *cmd);
 
