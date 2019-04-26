@@ -8,6 +8,8 @@
 */
 
 char *cmd_arg[MAX_ARG];/*字符指针数组*/
+char **cmd_pipe[MAX_ARG];/*管道分隔的命令指针*/
+char ***cmd_part[MAX_ARG];/*分号分隔的命令指针*/
 
 void separatecmd(char *,char *[]);
 
@@ -45,18 +47,39 @@ int processcmd(char *cmd)
 */
 void separatecmd(char *cmd,char *cmd_arg[])
 {
-    for(int i=0;i<MAX_ARG-1;++i)
+    int i_arg=0,i_pipe=0,i_part=0;
+    while(*cmd)
     {
-        while(*cmd==' '||*cmd=='\t')
-            *(cmd++)='\0';
-        if(*cmd=='\0')
+        if(*cmd==' '||*cmd=='\t')/*去除所有空格与Tab*/
         {
-            cmd_arg[i]=NULL;
-            break;
-        }
-        cmd_arg[i]=cmd;
-        while(*cmd!=' '&&*cmd!='\t'&&*cmd)/*跳到下一参数*/
             ++cmd;
+            continue;
+        }
+        if(*cmd=='|')
+        {
+            cmd++;
+        }
+        if(*cmd==';')
+        {
+
+        }
+
     }
+    cmd_arg[i_arg]=NULL;
+    cmd_pipe[i_pipe]=NULL;
+    cmd_part[i_part]=NULL;
+    // for(int i=0;i<MAX_ARG-1;++i)
+    // {
+    //     while(*cmd==' '||*cmd=='\t')
+    //         *(cmd++)='\0';
+    //     if(*cmd=='\0')
+    //     {
+    //         cmd_arg[i]=NULL;
+    //         break;
+    //     }
+    //     cmd_arg[i]=cmd;
+    //     while(*cmd!=' '&&*cmd!='\t'&&*cmd)/*跳到下一参数*/
+    //         ++cmd;
+    // }
     return;
 }
