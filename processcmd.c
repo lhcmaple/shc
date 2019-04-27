@@ -99,6 +99,17 @@ int processcmd(char *cmd)
 
 /*
 分隔命令且检查是否有非法字符
+ex:
+    echo abc|echo efg|echo f;echo d;echo d|echo f
+    ^    ^   ^    ^   ^    ^ ^    ^ ^    ^ ^    ^
+    |    |   |    |   |    | |    | |    | |    |
+arg |    |  n|    |  n|    |n|    |n|    |n|    |n
+    ^        ^        ^      ^      ^      ^
+    |        |        |      |      |      |
+pipe|        |        |     n|     n|      |     n
+    ^                        ^      ^
+    |                        |      |
+part|                        |      |            n
 */
 int separatecmd(char *cmd)
 {
