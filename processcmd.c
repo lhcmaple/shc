@@ -7,33 +7,22 @@
     '\'','|', ';',
 */
 
-char *cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
-char **cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
-char ***cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
+CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
+PCMD_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
+PPCMD_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
 
 int separatecmd(char *);
+int pipeprocess(char ***pipe);
 
 /*
 处理命令
 */
 int processcmd(char *cmd)
 {
-    char *p;
     pid_t pid;
-    int i,filedes[2];
+    int i;
 
     separatecmd(cmd);
-
-    // if(cmd_arg[0])
-    // {
-    //     for(int i=0;cmd_part[i];++i)
-    //     {
-    //         for(int j=cmd_part[i]-cmd_pipe;cmd_pipe[j];++j)
-    //             for(int k=cmd_pipe[j]-cmd_arg;cmd_arg[k];++k)
-    //                 fprintf(stderr,"%s ",cmd_arg[k]);
-    //     }
-    // }
-    // fprintf(stderr,"\n");
 
     if(cmd_arg[0])
     {
@@ -44,51 +33,7 @@ int processcmd(char *cmd)
                 fprintf(stderr,"error to fork\n");
             else if(pid==0)/*子进程*/
             {
-                while(*(cmd_part[i]+1))
-                {
-                    if(pipe(filedes))
-                        printf("error to create a pipe\n");
-
-                    // fprintf(stderr,"*%d\n",getpid());
-                    pid=fork();
-                    // fprintf(stderr,"%d\n",getpid());
-
-                    if(pid<0)
-                        fprintf(stderr,"error to fork\n");
-                    else if(pid==0)/*子子进程*/
-                    {
-                        close(filedes[0]);
-                        if(dup2(filedes[1],STDOUT_FILENO)!=STDOUT_FILENO)
-                            fprintf(stderr,"error to dup2\n");
-                        close(filedes[1]);
-                        p=**cmd_part[i];
-                        **cmd_part[i]=strrchr(p,'/');
-                        **cmd_part[i]=**cmd_part[i]?**cmd_part[i]+1:p;/*防止为空指针*/
-
-                        // fprintf(stderr,"%d",getpid());
-
-                        if(execvp(p,*cmd_part[i]))
-                        {
-                            fprintf(stderr,"error in executing \"%s\"\n",p);
-                            exit(-1);
-                        }
-                        /*子子进程终止处*/
-                    }
-                    close(filedes[1]);
-                    if(dup2(filedes[0],STDIN_FILENO)!=STDIN_FILENO)
-                        fprintf(stderr,"error to dup2\n");
-                    close(filedes[0]);
-                    ++cmd_part[i];
-                }
-                p=**cmd_part[i];
-                **cmd_part[i]=strrchr(p,'/');
-                **cmd_part[i]=**cmd_part[i]?**cmd_part[i]+1:p;/*防止为空指针*/
-                // fprintf(stderr,"%s%s\n",**cmd_part[i],**cmd_part[i]+1);
-                if(execvp(p,*cmd_part[i]))
-                {
-                    fprintf(stderr,"error in executing \"%s\"\n",p);
-                    exit(-1);
-                }
+                pipeprocess(cmd_part[i]);
                 /*子进程终止处*/
             }
             wait(NULL);/*父进程*/
@@ -153,4 +98,51 @@ int separatecmd(char *cmd)
     cmd_pipe[i_pipe]=NULL;
     cmd_part[i_part]=NULL;
     return 0;
+}
+
+int pipeprocess(PPCMD_ARG pprocess)/*可重入*/
+{
+    pid_t pid;
+    int filedes[2];
+    char *p;
+
+    while(*(pprocess+1))
+    {
+        if(pipe(filedes))
+            printf("error to create a pipe\n");
+        pid=fork();
+        if(pid<0)
+            fprintf(stderr,"error to fork\n");
+        else if(pid==0)/*子子进程*/
+        {
+            close(filedes[0]);
+            if(dup2(filedes[1],STDOUT_FILENO)!=STDOUT_FILENO)
+                fprintf(stderr,"error to dup2\n");
+            close(filedes[1]);
+            p=**pprocess;
+            **pprocess=strrchr(p,'/');
+            **pprocess=**pprocess?**pprocess+1:p;/*防止为空指针*/
+            if(execvp(p,*pprocess))
+            {
+                fprintf(stderr,"error in executing \"%s\"\n",p);
+                exit(-1);
+            }
+            /*子子进程终止处*/
+        }
+        close(filedes[1]);
+        if(dup2(filedes[0],STDIN_FILENO)!=STDIN_FILENO)
+            fprintf(stderr,"error to dup2\n");
+        close(filedes[0]);
+        ++pprocess;
+    }
+    p=**pprocess;
+    **pprocess=strrchr(p,'/');
+    **pprocess=**pprocess?**pprocess+1:p;/*防止为空指针*/
+    if(execvp(p,*pprocess))
+    {
+        fprintf(stderr,"error in executing \"%s\"\n",p);
+        exit(-1);
+    }
+    return 0;
+    /*子进程终止处*/
 }

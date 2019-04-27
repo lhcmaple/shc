@@ -8,6 +8,7 @@
 
 #include"opt.h"
 #include"stringproc.h"
+#include"type.h"
 
 int processcmd(char *cmd);
 
