@@ -7,9 +7,16 @@
     '\'','|', ';',
 */
 
+/*内置命令
+    "cd"
+    "exit"
+    "jobs"
+*/
+
 CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
 PCMD_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
 PPCMD_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
+char inner_cmd[][MAX_CMD_LEN]={"cd","exit","jobs","\0"};/*空字符串表明结束*/
 int status;/*命令返回状态*/
 
 int separatecmd(char *);
@@ -37,6 +44,7 @@ void processcmd(char *cmd)
                 pipeprocess(cmd_part[i]);
                 /*子进程终止处*/
             }
+            setpgid(pid,pid);
             wait(&status);/*父进程*/
             status=WEXITSTATUS(status);/*取低8位的无符号返回状态值0~255*/
         }
@@ -107,6 +115,7 @@ int pipeprocess(PPCMD_ARG pprocess)
     int filedes[2];
     char *p;
 
+    setpgid(0,0);
     while(*(pprocess+1))
     {
         if(pipe(filedes))
