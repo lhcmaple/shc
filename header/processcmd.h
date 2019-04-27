@@ -10,6 +10,6 @@
 #include"stringproc.h"
 #include"type.h"
 
-int processcmd(char *cmd);
+void processcmd(char *cmd);
 
 #endif

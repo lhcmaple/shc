@@ -10,6 +10,7 @@
 CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
 PCMD_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
 PPCMD_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
+int status;/*命令返回状态*/
 
 int separatecmd(char *);
 int pipeprocess(char ***pipe);
@@ -17,7 +18,7 @@ int pipeprocess(char ***pipe);
 /*
 处理命令
 */
-int processcmd(char *cmd)
+void processcmd(char *cmd)
 {
     pid_t pid;
     int i;
@@ -36,10 +37,10 @@ int processcmd(char *cmd)
                 pipeprocess(cmd_part[i]);
                 /*子进程终止处*/
             }
-            wait(NULL);/*父进程*/
+            wait(&status);/*父进程*/
+            status=WEXITSTATUS(status);/*取低8位的无符号返回状态值0~255*/
         }
     }
-    return 0;/*默认返回状态为0*/
 }
 
 /*
@@ -100,7 +101,7 @@ int separatecmd(char *cmd)
     return 0;
 }
 
-int pipeprocess(PPCMD_ARG pprocess)/*可重入*/
+int pipeprocess(PPCMD_ARG pprocess)
 {
     pid_t pid;
     int filedes[2];
@@ -143,6 +144,6 @@ int pipeprocess(PPCMD_ARG pprocess)/*可重入*/
         fprintf(stderr,"error in executing \"%s\"\n",p);
         exit(-1);
     }
-    return 0;
     /*子进程终止处*/
+    return 0;
 }

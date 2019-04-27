@@ -8,6 +8,4 @@
 #include"opt.h"
 #include"processcmd.h"
 
-int cstatus;
-
 #endif

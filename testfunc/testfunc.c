@@ -10,5 +10,5 @@ int main(int argc,char *argv[])
     printf("\n");
     while(fgets(buf,100,stdin))
         printf("%s",buf);
-    return 0;
+    return -1;
 }

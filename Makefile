@@ -1,4 +1,6 @@
-install:
-	gcc -o shc processcmd.c stringproc.c shc.c -I. -std=c11
-test:testfunc.c
-	gcc -o test testfunc.c -I. -std=c11
+INCLUDE=-I./etc -I./header
+
+install:source/*
+	gcc -o shc source/* -std=c11 ${INCLUDE}
+test:testfunc.c/testfunc.c
+	gcc -o test testfunc/testfunc.c -I. -std=c11
