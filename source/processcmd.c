@@ -21,6 +21,7 @@ int status;/*命令返回状态*/
 
 int separatecmd(char *);
 int pipeprocess(char ***pipe);
+int isinnercommand(char *icmd);
 
 /*
 处理命令
@@ -155,4 +156,9 @@ int pipeprocess(PPCMD_ARG pprocess)
     }
     /*子进程终止处*/
     return 0;
+}
+
+int isinnercommand(char *icmd)
+{
+
 }
