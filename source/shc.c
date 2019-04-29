@@ -14,6 +14,7 @@ int main(int argc,char *argv[])
 {
     char cmd[CMDLINE_MAX];
     int pid;
+    int len;
 
     pid=fork();
     if(pid<0)
@@ -30,7 +31,9 @@ int main(int argc,char *argv[])
             {
                 exit(-1);
             }
-            cmd[strlen(cmd)-1]='\0';/*删除换行符*/
+            len=strlen(cmd);
+            if(cmd[len-1]=='\n')
+                cmd[len-1]='\0';/*删除换行符*/
             processcmd(cmd);
         }
     }
