@@ -22,11 +22,13 @@ static void ijobs(void *);
     "jobs"
 */
 
-static char inner_cmd[][MAX_CMD_LEN]={"cd","exit",
+static char inner_cmd[][MAX_CMD_LEN]={
+    "cd"
+    ,"exit"
 #if FUNC_INNERCOMMAND
-    "jobs",
+    ,"jobs"
 #endif
-    ""};/*空字符串表明结束*/
+    ,""};/*空字符串表明结束*/
 
 INNER_FUNC inner_func[]={
     exec
