@@ -1,5 +1,16 @@
 #include"processcmd.h"
 
+#include<string.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include<stdio.h>
+#include<sys/wait.h>
+
+#include"opt.h"
+#include"type.h"
+#include"stringproc.h"
+#include"innercommand.h"
+
 /*所有的特殊意义字符
     '>', '<', '$', '`',
     '&', '(', ')', ' ',
@@ -7,21 +18,14 @@
     '\'','|', ';',
 */
 
-/*内置命令
-    "cd"
-    "exit"
-    "jobs"
-*/
+extern INNER_FUNC inner_func[];/*内置命令函数指针*/
 
-CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
-PCMD_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
-PPCMD_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
-char inner_cmd[][MAX_CMD_LEN]={"cd","exit","jobs","\0"};/*空字符串表明结束*/
-int status;/*命令返回状态*/
-
-int separatecmd(char *);
-int pipeprocess(char ***pipe);
-int isinnercommand(char *icmd);
+static CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
+static PCMD_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
+static PPCMD_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
+static int status;/*命令返回状态*/
+static int separatecmd(char *);
+static void pipeprocess(char ***pipe);
 
 /*
 处理命令
@@ -44,6 +48,17 @@ void processcmd(char *cmd)
             {
                 pipeprocess(cmd_part[i]);
                 /*子进程终止处*/
+            }
+            if(cmd_part[i][1]==NULL)
+            {
+                if(strcmp("cd",cmd_part[i][0][0])==0)
+                {
+                    chdir(cmd_part[0][0][1]);
+                }
+                else if(strcmp("exit",cmd_part[i][0][0])==0)
+                {
+                    exit(strtoint(cmd_part[i][0][1]));
+                }
             }
             setpgid(pid,pid);
             wait(&status);/*父进程*/
@@ -110,11 +125,10 @@ int separatecmd(char *cmd)
     return 0;
 }
 
-int pipeprocess(PPCMD_ARG pprocess)
+void pipeprocess(PPCMD_ARG pprocess)
 {
     pid_t pid;
     int filedes[2];
-    char *p;
 
     setpgid(0,0);
     while(*(pprocess+1))
@@ -130,14 +144,7 @@ int pipeprocess(PPCMD_ARG pprocess)
             if(dup2(filedes[1],STDOUT_FILENO)!=STDOUT_FILENO)
                 fprintf(stderr,"error to dup2\n");
             close(filedes[1]);
-            p=**pprocess;
-            **pprocess=strrchr(p,'/');
-            **pprocess=**pprocess?**pprocess+1:p;/*防止为空指针*/
-            if(execvp(p,*pprocess))
-            {
-                fprintf(stderr,"error in executing \"%s\"\n",p);
-                exit(-1);
-            }
+            inner_func[innercommand(**pprocess)](*pprocess);
             /*子子进程终止处*/
         }
         close(filedes[1]);
@@ -146,19 +153,6 @@ int pipeprocess(PPCMD_ARG pprocess)
         close(filedes[0]);
         ++pprocess;
     }
-    p=**pprocess;
-    **pprocess=strrchr(p,'/');
-    **pprocess=**pprocess?**pprocess+1:p;/*防止为空指针*/
-    if(execvp(p,*pprocess))
-    {
-        fprintf(stderr,"error in executing \"%s\"\n",p);
-        exit(-1);
-    }
-    /*子进程终止处*/
-    return 0;
-}
-
-int isinnercommand(char *icmd)
-{
-
+    inner_func[innercommand(**pprocess)](*pprocess);
+    /*子子进程终止处*/
 }

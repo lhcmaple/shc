@@ -2,5 +2,6 @@
 #define _STRINGPROC_H
 
 char *delfrontspace(char *);
+int strtoint(char *);
 
 #endif
