@@ -37,7 +37,7 @@ INNER_FUNC inner_func[]={
 #if FUNC_INNERCOMMAND
     ,ijobs
 #endif
-};/*第一个NULL只是为了对齐isinnnercommand的返回参数*/
+};/*对齐isinnnercommand的返回参数*/
 
 int innercommand(char *icmd)
 {
@@ -74,8 +74,7 @@ void icd(void *arg)
 
 void iexit(void *arg)
 {
-    char **pprocess=(char **)arg;
-    exit(strtoint(pprocess[1]));
+    exit(0);
 }
 
 #if FUNC_INNERCOMMAND

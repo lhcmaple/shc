@@ -93,8 +93,11 @@ int separatecmd(char *cmd)
     while(1)
     {
         cmd=delfrontspace(cmd);
-        if(*cmd=='\0')
+        if(*cmd=='\0'||*cmd=='#')
+        {
+            *cmd='\0';
             break;
+        }
         if(*cmd=='|')
         {
             *(cmd++)='\0';
@@ -116,7 +119,7 @@ int separatecmd(char *cmd)
         }
         cmd_arg[i_arg]=cmd;
         ++i_arg;
-        while(*cmd&&*cmd!=' '&&*cmd!='\t'&&*cmd!='|'&&*cmd!=';')
+        while(*cmd&&*cmd!='#'&&*cmd!=' '&&*cmd!='\t'&&*cmd!='|'&&*cmd!=';')
             ++cmd;
     }
     cmd_arg[i_arg]=NULL;
