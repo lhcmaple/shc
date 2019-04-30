@@ -1,14 +1,12 @@
 #include<stdio.h>
+#include<unistd.h>
+#include<termios.h>
 
 int main(int argc,char *argv[])
 {
-    char buf[100];
-    for(int i=0;i<argc;++i)
-    {
-        printf("%s ",argv[i]);
-    }
-    printf("\n");
-    while(fgets(buf,100,stdin))
-        printf("%s",buf);
+    char *p;
+    p=ttyname(STDIN_FILENO);
+    if(p)
+        printf("%s\n",p);
     return -1;
 }
