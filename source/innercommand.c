@@ -13,20 +13,19 @@ static void exec(void *);
 static void icd(void *);
 static void iexit(void *);
 #if FUNC_INNERCOMMAND
-static void ijobs(void *);
+
 #endif
 
 /*内置命令
     "cd",
     "exit",
-    "jobs"
 */
 
 static char inner_cmd[][MAX_CMD_LEN]={
     "cd"
     ,"exit"
 #if FUNC_INNERCOMMAND
-    ,"jobs"
+
 #endif
     ,""};/*空字符串表明结束*/
 
@@ -35,7 +34,7 @@ INNER_FUNC inner_func[]={
     ,icd
     ,iexit
 #if FUNC_INNERCOMMAND
-    ,ijobs
+
 #endif
 };/*第一个NULL只是为了对齐isinnnercommand的返回参数*/
 
@@ -79,10 +78,5 @@ void iexit(void *arg)
 }
 
 #if FUNC_INNERCOMMAND
-void ijobs(void *arg)
-{
-    char** pprocess=(char **)arg;
-    
-    exit(0);
-}
+
 #endif

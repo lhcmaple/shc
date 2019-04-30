@@ -60,7 +60,6 @@ void processcmd(char *cmd)
                     exit(strtoint(cmd_part[i][0][1]));
                 }
             }
-            setpgid(pid,pid);
             wait(&status);/*父进程*/
             status=WEXITSTATUS(status);/*取低8位的无符号返回状态值0~255*/
         }
@@ -130,7 +129,6 @@ void pipeprocess(PPCMD_ARG pprocess)
     pid_t pid;
     int filedes[2];
 
-    setpgid(0,0);
     while(*(pprocess+1))
     {
         if(pipe(filedes))
