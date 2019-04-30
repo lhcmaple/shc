@@ -13,7 +13,7 @@
 int main(int argc,char *argv[])
 {
     char cmd[CMDLINE_MAX];
-    int pid,len,mutual,i;
+    int pid,len,mutual,i,status;
     FILE *input[MAX_INPUT_FILE];
     pid=fork();
     if(pid<0)
@@ -52,8 +52,8 @@ int main(int argc,char *argv[])
                 processcmd(cmd,input[i-1]);
             }
         }
-        exit(-1);
+        exit(0);
     }
-    wait(NULL);
-    return 0;
+    wait(&status);
+    return WEXITSTATUS(status);
 }

@@ -4,9 +4,7 @@
 
 int main(int argc,char *argv[])
 {
-    char *p;
-    p=ttyname(STDIN_FILENO);
-    if(p)
-        printf("%s\n",p);
-    return -1;
+    char *passwd=getpass("Input your password:");
+    printf("Your password is:%s\n",passwd);
+    return 0;
 }
