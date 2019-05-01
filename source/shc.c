@@ -2,18 +2,17 @@
 
 int main(int argc,char *argv[])
 {
-    char cmd[CMDLINE_MAX];
     int pid,len,mutual,i,status;
-    FILE *input[MAX_INPUT_FILE];
+
     pid=fork();
     if(pid<0)
-        exit(-1);
+        exit(ERROR_FAILTOSTART);/*程序直接结束*/
     else if(pid==0)
     {
         // setsid();
         if(argc==1)
         {
-            argc=2;/*等于多一个标准输入文件作参数*/
+            argc=2;/*等于多一个标准输入作参数*/
             input[0]=stdin;
             mutual=isatty(STDIN_FILENO);
         }
@@ -26,26 +25,27 @@ int main(int argc,char *argv[])
             }
             mutual=0;
         }
-        for(i=1;i<argc&&i<MAX_INPUT_FILE;++i)
+        for(i=1;i<argc&&i<=MAX_INPUT_FILE;++i)
         {
+            in=input[i-1];
             while(1)
             {
                 if(getppid()==1)
-                    exit(1);
+                    exit(ERROR_PARENTEXIT);
                 if(mutual)
                     printf("shc:%s$",getcwd(cmd,CMDLINE_MAX));
-                if(fgets(cmd,CMDLINE_MAX,input[i-1])==NULL)
+                if(fgets(cmd,CMDLINE_MAX,in)==NULL)
                 {
                     break;
                 }
                 len=strlen(cmd);
                 if(cmd[len-1]=='\n')
                     cmd[len-1]='\0';/*删除换行符*/
-                processcmd(cmd,input[i-1]);
+                processcmd(cmd,in);
             }
         }
-        exit(0);
+        exit(NORMAL_EXIT);
     }
-    wait(&status);
+    wait(&status);/*等待子进程结束，并获取状态*/
     return WEXITSTATUS(status);
 }
