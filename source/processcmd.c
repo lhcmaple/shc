@@ -1,38 +1,4 @@
-#include"processcmd.h"
-
-#include<string.h>
-#include<unistd.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<sys/wait.h>
-#include<fcntl.h>
-
-#include"opt.h"
-#include"type.h"
-#include"stringproc.h"
-#include"innercommand.h"
-
-/*所有的特殊意义字符
-    '|', ';', '#', ' ',
-    '\t','\'','"', '<',
-    '>', 
------------------------
-    '$', '`', '&', '(',
-    ')', '{', '}',
-*/
-
-extern INNER_FUNC inner_func[];/*内置命令函数指针*/
-
-static CMD_ARG cmd_arg[MAX_ARG];/*字符指针数组,不设越界控制*/
-static PIPE_ARG cmd_pipe[MAX_ARG];/*管道分隔的命令指针,不设越界控制*/
-static PPIPE_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控制*/
-static int status;/*命令返回状态*/
-static char cmd_cache[CMDLINE_MAX];
-
-static int separatecmd(char *,FILE *input);
-static void pipeprocess(char ***pipe);
-static void redirect(PIPE_ARG arg);
-static char *preprocess(char *cmd);
+#include"header/_processcmd.h"
 
 /*
 处理命令
@@ -88,7 +54,7 @@ pipe|        |        |     n|     n|      |     n
     |                        |      |
 part|                        |      |            n
 */
-int separatecmd(char *cmd,FILE *input)
+static int separatecmd(char *cmd,FILE *input)
 {
     int i_arg=0,i_pipe=0,i_part=0;
     int flag1=0,flag2=0,len;
@@ -185,7 +151,7 @@ int separatecmd(char *cmd,FILE *input)
     return 0;
 }
 
-void pipeprocess(PPIPE_ARG pprocess)
+static void pipeprocess(PPIPE_ARG pprocess)
 {
     pid_t pid;
     int filedes[2];
@@ -222,7 +188,7 @@ void pipeprocess(PPIPE_ARG pprocess)
         /*子子进程终止处*/
 }
 
-void redirect(PIPE_ARG arg)
+static void redirect(PIPE_ARG arg)
 {
     CMD_ARG param;
     int fd0,fd1;
@@ -291,7 +257,7 @@ void redirect(PIPE_ARG arg)
 /*
 预处理命令串
 */
-char *preprocess(char *cmd)
+static char *preprocess(char *cmd)
 {
     return cmd;
     while(*cmd)

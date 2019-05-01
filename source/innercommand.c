@@ -1,43 +1,4 @@
-#include"innercommand.h"
-
-#include<string.h>
-#include<stdio.h>
-#include<unistd.h>
-#include<stdlib.h>
-
-#include"opt.h"
-#include"type.h"
-#include"stringproc.h"
-
-static void exec(void *);
-static void icd(void *);
-static void iexit(void *);
-#if FUNC_INNERCOMMAND
-static void ijobs(void *);
-#endif
-
-/*内置命令
-    "cd",
-    "exit",
-    "jobs"
-*/
-
-static char inner_cmd[][MAX_CMD_LEN]={
-    "cd"
-    ,"exit"
-#if FUNC_INNERCOMMAND
-    ,"jobs"
-#endif
-    ,""};/*空字符串表明结束*/
-
-INNER_FUNC inner_func[]={
-    exec
-    ,icd
-    ,iexit
-#if FUNC_INNERCOMMAND
-    ,ijobs
-#endif
-};/*对齐isinnnercommand的返回参数*/
+#include"header/_innercommand.h"
 
 int innercommand(char *icmd)
 {
@@ -52,7 +13,7 @@ int innercommand(char *icmd)
     return 0;
 }
 
-void exec(void *arg)
+static void exec(void *arg)
 {
     char **pprocess;
     char *p;
@@ -67,18 +28,18 @@ void exec(void *arg)
     }
 }
 
-void icd(void *arg)
+static void icd(void *arg)
 {
     exit(0);
 }
 
-void iexit(void *arg)
+static void iexit(void *arg)
 {
     exit(0);
 }
 
 #if FUNC_INNERCOMMAND
-void ijobs(void *arg)
+static void ijobs(void *arg)
 {
     char** pprocess=(char **)arg;
     

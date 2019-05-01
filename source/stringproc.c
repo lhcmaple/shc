@@ -1,6 +1,4 @@
-#include"stringproc.h"
-
-#include<unistd.h>
+#include"header/_stringproc.h"
 
 /*
 删除前导空格或Tab,并置为'\0'
