@@ -41,7 +41,7 @@ int main(int argc,char *argv[])
                 len=strlen(cmd);
                 if(cmd[len-1]=='\n')
                     cmd[len-1]='\0';/*删除换行符*/
-                processcmd(cmd,in);
+                processcmd(cmd);
             }
         }
         exit(NORMAL_EXIT);

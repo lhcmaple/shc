@@ -3,6 +3,6 @@
 
 extern INNER_FUNC inner_func[];/*内置命令函数指针*/
 
-int innercommand(char *);
+extern int innercommand(char *);
 
 #endif

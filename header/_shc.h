@@ -9,6 +9,6 @@
 #include"etc/error.h"
 #include"header/processcmd.h"
 
-char cmd[CMDLINE_MAX];
 FILE *in;
 static FILE *input[MAX_INPUT_FILE];
+static char cmd[CMDLINE_MAX];

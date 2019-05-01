@@ -3,14 +3,12 @@
 /*
 处理命令
 */
-void processcmd(char *cmd,FILE *input)
+void processcmd(char *cmd)
 {
     pid_t pid;
     int i;
 
-    separatecmd(cmd,input);
-
-    if(cmd_arg[0])
+    if(separatecmd(cmd))
     {
         for(i=0;cmd_part[i];++i)/*分号进程*/
         {
@@ -54,7 +52,7 @@ pipe|        |        |     n|     n|      |     n
     |                        |      |
 part|                        |      |            n
 */
-static int separatecmd(char *cmd,FILE *input)
+static int separatecmd(char *cmd)
 {
     int i_arg=0,i_pipe=0,i_part=0;
     int flag1=0,flag2=0,len;
@@ -118,7 +116,7 @@ static int separatecmd(char *cmd,FILE *input)
                 while(1)
                 {
                     printf(">");
-                    if(fgets(cmd,CMDLINE_MAX,input)==NULL)/*可能越界*/
+                    if(fgets(cmd,CMDLINE_MAX,in)==NULL)/*可能越界*/
                         exit(-1);
                     while(*cmd&&*cmd!=c)
                         ++cmd;
@@ -148,10 +146,11 @@ static int separatecmd(char *cmd,FILE *input)
     cmd_arg[i_arg]=NULL;
     cmd_pipe[i_pipe]=NULL;
     cmd_part[i_part]=NULL;
-    return 0;
+
+    return cmd_arg[0]!=NULL;
 }
 
-static void pipeprocess(PPIPE_ARG pprocess)
+static void pipeprocess(PART_ARG pprocess)
 {
     pid_t pid;
     int filedes[2];

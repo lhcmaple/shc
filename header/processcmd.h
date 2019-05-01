@@ -2,6 +2,6 @@
 #define _PROCESSCMD_H
 #include<stdio.h>
 
-void processcmd(char *cmd,FILE *input);
+extern void processcmd(char *cmd);
 
 #endif
