@@ -40,6 +40,8 @@ int main(int argc,char *argv[])
         {
             while(1)
             {
+                if(getppid()==1)
+                    exit(1);
                 if(mutual)
                     printf("shc:%s$",getcwd(cmd,CMDLINE_MAX));
                 if(fgets(cmd,CMDLINE_MAX,input[i-1])==NULL)
