@@ -5,6 +5,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<sys/wait.h>
+#include<fcntl.h>
 
 #include"opt.h"
 #include"type.h"
@@ -28,6 +29,7 @@ static PPIPE_ARG cmd_part[MAX_ARG];/*分号分隔的命令指针,不设越界控
 static int status;/*命令返回状态*/
 static int separatecmd(char *,FILE *input);
 static void pipeprocess(char ***pipe);
+static void redirect(PIPE_ARG arg);
 
 /*
 处理命令
@@ -183,6 +185,7 @@ void pipeprocess(PPIPE_ARG pprocess)
 {
     pid_t pid;
     int filedes[2];
+    char *param;
 
     setpgid(0,0);
     while(*(pprocess+1))
@@ -198,8 +201,10 @@ void pipeprocess(PPIPE_ARG pprocess)
             if(dup2(filedes[1],STDOUT_FILENO)!=STDOUT_FILENO)
                 fprintf(stderr,"error to dup2\n");
             close(filedes[1]);
-            inner_func[innercommand(**pprocess)](*pprocess);
-            /*子子进程终止处*/
+            redirect(*pprocess);
+            if(**pprocess)
+                inner_func[innercommand(**pprocess)](*pprocess);
+                /*子子进程终止处*/
         }
         close(filedes[1]);
         if(dup2(filedes[0],STDIN_FILENO)!=STDIN_FILENO)
@@ -207,6 +212,74 @@ void pipeprocess(PPIPE_ARG pprocess)
         close(filedes[0]);
         ++pprocess;
     }
-    inner_func[innercommand(**pprocess)](*pprocess);
-    /*子子进程终止处*/
+    redirect(*pprocess);
+    if(**pprocess)
+        inner_func[innercommand(**pprocess)](*pprocess);
+        /*子子进程终止处*/
+}
+
+void redirect(PIPE_ARG arg)
+{
+    CMD_ARG param;
+    int fd0,fd1;
+    while(*arg)
+    {
+        if(param=strrchr(*arg,'<'))
+        {
+            *(param++)='\0';
+            if(**arg=='\0')
+            {
+                fd0=0;
+            }
+            else
+            {
+                fd0=atoi(*arg);
+            }
+            if(*param=='&')
+            {
+                ++param;
+                fd1=atoi(param);
+            }
+            else
+            {
+                fd1=open(param,O_RDONLY);
+            }
+            if(dup2(fd1,fd0)!=fd0)
+            {
+                fprintf(stderr,"failed to redirect %s to %s",*arg,param);
+                exit(-1);
+            }
+            close(fd1);
+            *arg=NULL;
+        }
+        else if(param=strrchr(*arg,'>'))
+        {
+            *(param++)='\0';
+            if(**arg=='\0')
+            {
+                fd0=1;
+            }
+            else
+            {
+                fd0=atoi(*arg);
+            }
+            if(*param=='&')
+            {
+                ++param;
+                fd1=atoi(param);
+            }
+            else
+            {
+                fd1=open(param,O_WRONLY|O_CREAT);
+            }
+            if(dup2(fd1,fd0)!=fd0)
+            {
+                fprintf(stderr,"failed to redirect %s to %s",*arg,param);
+                exit(-1);
+            }
+            close(fd1);
+            *arg=NULL;
+        }
+        ++arg;
+    }
 }
