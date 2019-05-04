@@ -255,25 +255,107 @@ static void redirect(PIPE_ARG arg)
 
 /*
 预处理命令串
+ex:
+            echo abc|echo efg|echo f;echo d;echo d|echo f
+            ^    ^  ^^    ^  ^^    ^^^    ^^^    ^^^    ^
+            |    |  ||    |  ||    |||    |||    |||    |
+            |    |  ||    |  ||    |||    |||    |||    |
+p_arg_cache |    |  ||    |  ||    |||    |||    |||    |n
+                    |        |      |      |      |
+                    |        |      |      |      |
+p_pipe_cache        |        |      |      |      |n
+                    |        |      |      |      |
+                    |        |      |      |      |
+p_part_cache        |        |      |      |      |n
 */
-static char *preprocess(char *cmd)
+static void preprocess(char *cmd)
 {
-    return cmd;
-    while(*cmd)
+    int isspace=1,len;
+    char *p_cache=cmd_cache;
+    CMD_ARG *p_arg_cache=cmd_arg_cache;
+    CMD_ARG *p_pipe_cache=cmd_pipe_cache;
+    CMD_ARG *p_part_cache=cmd_part_cache;
+    while(*cmd||*cmd=='#')
     {
-        if(*cmd=='"')
+        switch(*cmd)
         {
-
-        }
-        if(*cmd=='\'')
-        {
-
-        }
-        if(*cmd==' '||*cmd=='\t')
-        {
-
+            case ' ':
+            case '\t':
+                isspace=1;
+                *cmd='\0';
+                *(p_cache++)=*cmd;
+                break;
+            case '|':
+                isspace=1;
+                *cmd='\0';
+                *(p_pipe_cache++)=p_cache;
+                *(p_cache++)=*cmd;
+                break;
+            case ';':
+                isspace=1;
+                *cmd='\0';
+                *(p_pipe_cache++)=p_cache;
+                *(p_part_cache++)=p_cache;
+                *(p_cache++)=*cmd;
+                break;
+            case '"':
+                if(isspace)
+                {
+                    isspace=0;
+                    *(p_arg_cache++)=p_cache;
+                }
+                while(*(++cmd)!='"')
+                {
+                    if(*cmd=='\0')
+                    {
+                        *cmd='\n';
+                        printf(">");
+                        if(fgets(cmd+1,CMDLINE_MAX,in)==NULL)
+                        {
+                            exit(NORMAL_EXIT);
+                        }
+                        len=strlen(cmd);
+                        if(cmd[len-1]=='\n')
+                            cmd[len-1]='\0';/*删除换行符*/
+                    }
+                    *(p_cache++)=*cmd;
+                }
+                break;
+            case '\'':
+                if(isspace)
+                {
+                    isspace=0;
+                    *(p_arg_cache++)=p_cache;
+                }
+                while(*(++cmd)!='\'')
+                {
+                    if(*cmd=='\0')
+                    {
+                        *cmd='\n';
+                        printf(">");
+                        if(fgets(cmd+1,CMDLINE_MAX,in)==NULL)
+                        {
+                            exit(NORMAL_EXIT);
+                        }
+                        len=strlen(cmd);
+                        if(cmd[len-1]=='\n')
+                            cmd[len-1]='\0';/*删除换行符*/
+                    }
+                    *(p_cache++)=*cmd;
+                }
+                break;
+            default:
+                if(isspace)
+                {
+                    isspace=0;
+                    *(p_arg_cache++)=p_cache;
+                }
+                *(p_cache++)=*cmd;
         }
         ++cmd;
     }
-    return cmd_cache;
+    *p_cache='\0';
+    *p_arg_cache=NULL;
+    *p_pipe_cache=NULL;
+    *p_part_cache=NULL;
 }
