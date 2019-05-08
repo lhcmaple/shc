@@ -34,4 +34,3 @@ void processcmd(char *);
 static int separatecmd(char *);
 static void pipeprocess(PART_ARG);
 static void redirect(PIPE_ARG);
-static void preprocess(char *);
