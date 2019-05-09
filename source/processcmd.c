@@ -41,16 +41,16 @@ void processcmd(char *cmd)
 /*
     分隔命令且检查是否有非法字符
     ex:
-                echo abc|echo efg|echo f;echo d;echo d|echo f
-                ^    ^   ^    ^   ^    ^ ^    ^ ^    ^ ^    ^
-                |    |   |    |   |    | |    | |    | |    |
-    arg         |    |  n|    |  n|    |n|    |n|    |n|    |n
-                ^        ^        ^      ^      ^      ^
-                |        |        |      |      |      |
-    pipe        |        |        |     n|     n|      |     n
-                ^                        ^      ^
-                |                        |      |
-    part        |                        |      |            n
+                    echo abc|echo efg|echo f;echo d;echo d|echo f
+                    ^    ^   ^    ^   ^    ^ ^    ^ ^    ^ ^    ^
+                    |    |   |    |   |    | |    | |    | |    |
+    cmd_arg         |    |  n|    |  n|    |n|    |n|    |n|    |n
+                    ^        ^        ^      ^      ^      ^
+                    |        |        |      |      |      |
+    cmd_pipe        |        |        |     n|     n|      |     n
+                    ^                        ^      ^
+                    |                        |      |
+    cmd_part        |                        |      |            n
 */
 static int separatecmd(char *cmd)
 {
@@ -164,9 +164,9 @@ static int separatecmd(char *cmd)
     p_part_cache=cmd_part_cache;
     do{
         thredpipe=*p_part_cache?*p_part_cache:p_cache;
-        while(*p_pipe_cache<thredpipe)
+        while(*p_pipe_cache&&*p_pipe_cache<thredpipe)
         {
-            while(*p_arg_cache<*p_pipe_cache)
+            while(*p_arg_cache&&*p_arg_cache<*p_pipe_cache)
             {
                 cmd_arg[i_arg++]=*p_arg_cache;
                 if(ispipe)
@@ -185,7 +185,7 @@ static int separatecmd(char *cmd)
             ispipe=1;
             ++p_pipe_cache;
         }
-        while(*p_arg_cache<thredpipe)
+        while(*p_arg_cache&&*p_arg_cache<thredpipe)
         {
             cmd_arg[i_arg++]=*p_arg_cache;
             if(ispipe)
@@ -201,9 +201,14 @@ static int separatecmd(char *cmd)
             ++p_arg_cache;
         }
         cmd_arg[i_arg++]=NULL;
+
+        cmd_pipe[i_pipe++]=NULL;
         ispipe=1;
         ispart=1;
     }while(*(p_part_cache++));
+    cmd_part[i_part++]=NULL;
+
+    return cmd_part[0]!=NULL;
 }
 
 static void pipeprocess(PART_ARG pprocess)
