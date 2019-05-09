@@ -24,7 +24,7 @@ void processcmd(char *cmd)
             {
                 if(strcmp("cd",cmd_part[i][0][0])==0)
                 {
-                    chdir(cmd_part[0][0][1]);
+                    chdir(cmd_part[i][0][1]);
                 }
                 else if(strcmp("exit",cmd_part[i][0][0])==0)
                 {
