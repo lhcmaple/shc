@@ -31,6 +31,6 @@ static CMD_ARG cmd_part_cache[MAX_ARG];
 static int status;/*命令返回状态*/
 
 void processcmd(char *);
-static int separatecmd(char *);
+static int interpretcmd(char *);
 static void pipeprocess(PART_ARG);
 static void redirect(PIPE_ARG);

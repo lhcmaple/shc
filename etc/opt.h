@@ -6,6 +6,7 @@
 #define MAX_CMD_LEN 33 /*内置命令的最长长度为32*/
 #define MAX_INPUT_FILE 32
 
-#define FUNC_INNERCOMMAND 1 /*内置命令功能,cd与exit为特殊内置命令，不可取消*/
+#define FUNC_INNERCOMMAND/*内置命令功能,cd与exit为特殊内置命令，不可取消*/
+#define FUNC_VARIABLE/*变量解析功能$*/
 
 #endif

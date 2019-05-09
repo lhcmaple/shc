@@ -1,14 +1,14 @@
 #include"header/_processcmd.h"
 
 /*
-处理命令
+    处理命令
 */
 void processcmd(char *cmd)
 {
     pid_t pid;
     int i;
 
-    if(separatecmd(cmd))
+    if(interpretcmd(cmd))
     {
         for(i=0;cmd_part[i];++i)/*分号进程*/
         {
@@ -39,20 +39,9 @@ void processcmd(char *cmd)
 }
 
 /*
-    分隔命令且检查是否有非法字符
-    ex:
-                    echo abc|echo efg|echo f;echo d;echo d|echo f
-                    ^    ^   ^    ^   ^    ^ ^    ^ ^    ^ ^    ^
-                    |    |   |    |   |    | |    | |    | |    |
-    cmd_arg         |    |  n|    |  n|    |n|    |n|    |n|    |n
-                    ^        ^        ^      ^      ^      ^
-                    |        |        |      |      |      |
-    cmd_pipe        |        |        |     n|     n|      |     n
-                    ^                        ^      ^
-                    |                        |      |
-    cmd_part        |                        |      |            n
+    解析命令串,如果命令为空,返回0
 */
-static int separatecmd(char *cmd)
+static int interpretcmd(char *cmd)
 {
     int isspace=1,len,i_arg=0,i_pipe=0,i_part=0,ispart=1,ispipe=1;
     char *p_cache=cmd_cache,*p=cmd,*thredpipe,*thredarg;
@@ -63,7 +52,7 @@ static int separatecmd(char *cmd)
     /*
         先将字符串以空格,Tab,管道和分号分隔成几个部分
         ex:
-                    echo abc|echo efg|echo f;echo d;echo d|echo f
+        cmd_cache   echo abc|echo efg|echo f;echo d;echo d|echo f
                     ^    ^  ^^    ^  ^^    ^^^    ^^^    ^^^    ^
                     |    |  ||    |  ||    |||    |||    |||    |
                     |    |  ||    |  ||    |||    |||    |||    |
@@ -159,6 +148,20 @@ static int separatecmd(char *cmd)
     *p_pipe_cache=NULL;
     *p_part_cache=NULL;
 
+    /*
+        把分隔的命令组织成以下形式
+        ex:
+                        echo abc|echo efg|echo f;echo d;echo d|echo f
+                        ^    ^   ^    ^   ^    ^ ^    ^ ^    ^ ^    ^
+                        |    |   |    |   |    | |    | |    | |    |
+        cmd_arg         |    |  n|    |  n|    |n|    |n|    |n|    |n
+                        ^        ^        ^      ^      ^      ^
+                        |        |        |      |      |      |
+        cmd_pipe        |        |        |     n|     n|      |     n
+                        ^                        ^      ^
+                        |                        |      |
+        cmd_part        |                        |      |            n
+    */
     p_arg_cache=cmd_arg_cache;
     p_pipe_cache=cmd_pipe_cache;
     p_part_cache=cmd_part_cache;
@@ -208,9 +211,16 @@ static int separatecmd(char *cmd)
     }while(*(p_part_cache++));
     cmd_part[i_part++]=NULL;
 
+#ifdef FUNC_VARIABLE
+    
+#endif
+
     return cmd_part[0]!=NULL;
 }
 
+/*
+    对管道进程组进行处理
+*/
 static void pipeprocess(PART_ARG pprocess)
 {
     pid_t pid;
@@ -248,6 +258,10 @@ static void pipeprocess(PART_ARG pprocess)
         /*子子进程终止处*/
 }
 
+/*
+    重定向
+    支持>与<,未实现>>
+*/
 static void redirect(PIPE_ARG arg)
 {
     CMD_ARG param;
@@ -261,11 +275,11 @@ static void redirect(PIPE_ARG arg)
             {
                 fd0=0;
             }
-            else
+            else/*可能出现不是数字的情况*/
             {
                 fd0=atoi(*arg);
             }
-            if(*param=='&')
+            if(*param=='&')/*可能出现不是数字的情况*/
             {
                 ++param;
                 fd1=atoi(param);
@@ -289,11 +303,11 @@ static void redirect(PIPE_ARG arg)
             {
                 fd0=1;
             }
-            else
+            else/*可能出现不是数字的情况*/
             {
                 fd0=atoi(*arg);
             }
-            if(*param=='&')
+            if(*param=='&')/*可能出现不是数字的情况*/
             {
                 ++param;
                 fd1=atoi(param);

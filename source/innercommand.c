@@ -38,7 +38,7 @@ static void iexit(void *arg)
     exit(0);
 }
 
-#if FUNC_INNERCOMMAND
+#ifdef FUNC_INNERCOMMAND
 static void ijobs(void *arg)
 {
     char** pprocess=(char **)arg;
