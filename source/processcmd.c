@@ -75,7 +75,7 @@ static int separatecmd(char *cmd)
                             |        |      |      |      |
         p_part_cache        |        |      |      |      |n
     */
-    while(*p||*p=='#')
+    while(*p&&*p!='#')
     { 
         switch(*p)
         {
