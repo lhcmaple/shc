@@ -1,4 +1,5 @@
 #include"header/_processcmd.h"
+#define FUNC_VARIABLE
 
 /*
     处理命令
@@ -45,10 +46,13 @@ static int interpretcmd(char *cmd)
 {
     int isspace=1,len,i_arg=0,i_pipe=0,i_part=0,ispart=1,ispipe=1;
     char *p_cache=cmd_cache,*p=cmd,*thredpipe,*thredarg;
-    CMD_ARG *p_arg_cache=cmd_arg_cache;
-    CMD_ARG *p_pipe_cache=cmd_pipe_cache;
-    CMD_ARG *p_part_cache=cmd_part_cache;
-
+    CMD_ARG *p_arg_cache=cmd_arg_cache,
+        *p_pipe_cache=cmd_pipe_cache,
+        *p_part_cache=cmd_part_cache;
+#ifdef FUNC_VARIABLE
+    NOT_VARIABLE **p_var_cache=not_var;
+    NOT_VARIABLE *p_var_temp;
+#endif
     /*
         先将字符串以空格,Tab,管道和分号分隔成几个部分
         ex:
@@ -64,6 +68,9 @@ static int interpretcmd(char *cmd)
                             |        |      |      |      |
         p_part_cache        |        |      |      |      |n
     */
+#ifdef FUNC_VARIABLE
+    init_alloc_NOT_VARIABLE();
+#endif
     while(*p&&*p!='#')
     { 
         switch(*p)
@@ -92,6 +99,9 @@ static int interpretcmd(char *cmd)
                 {
                     isspace=0;
                     *(p_arg_cache++)=p_cache;
+#ifdef FUNC_VARIABLE
+                    *(p_var_cache++)=NULL;
+#endif
                 }
                 while(*(++p)!='"')
                 {
@@ -115,7 +125,27 @@ static int interpretcmd(char *cmd)
                 {
                     isspace=0;
                     *(p_arg_cache++)=p_cache;
+#ifdef FUNC_VARIABLE
+                    *(p_var_cache++)=NULL;
+#endif
                 }
+#ifdef FUNC_VARIABLE/*构建双向链表*/
+                if((*(p_var_cache-1))==NULL)
+                {
+                    (*(p_var_cache-1))=alloc_NOT_VARIABLE();
+                    (*(p_var_cache-1))->next=(*(p_var_cache-1));
+                    (*(p_var_cache-1))->prev=(*(p_var_cache-1));
+                }
+                else
+                {
+                    p_var_temp=alloc_NOT_VARIABLE();
+                    (*(p_var_cache-1))->prev->next=p_var_temp;
+                    p_var_temp->next=(*(p_var_cache-1));
+                    p_var_temp->prev=(*(p_var_cache-1))->prev;
+                    (*(p_var_cache-1))->prev=p_var_temp;
+                }
+                (*(p_var_cache-1))->prev->start=p_cache;
+#endif
                 while(*(++p)!='\'')
                 {
                     if(*p=='\0')
@@ -132,12 +162,18 @@ static int interpretcmd(char *cmd)
                     }
                     *(p_cache++)=*p;
                 }
+#ifdef FUNC_VARIABLE
+                (*(p_var_cache-1))->prev->end=p_cache-1;
+#endif
                 break;
             default:
                 if(isspace)
                 {
                     isspace=0;
                     *(p_arg_cache++)=p_cache;
+#ifdef FUNC_VARIABLE
+                    *(p_var_cache++)=NULL;
+#endif
                 }
                 *(p_cache++)=*p;
         }
@@ -212,7 +248,20 @@ static int interpretcmd(char *cmd)
     cmd_part[i_part++]=NULL;
 
 #ifdef FUNC_VARIABLE
-    
+    for(int i=0;cmd_arg_cache[i];++i)
+    {
+        p_var_temp=not_var[i];
+        if(p_var_temp!=NULL)
+        {
+            do{
+                for(char *p=p_var_temp->start;p<=p_var_temp->end;++p)
+                {
+                    printf("%c",*p);
+                }
+                printf("\n");
+            }while((p_var_temp=p_var_temp->next)!=not_var[i]);
+        }
+    }
 #endif
 
     return cmd_part[0]!=NULL;
@@ -327,3 +376,25 @@ static void redirect(PIPE_ARG arg)
         ++arg;
     }
 }
+
+#ifdef FUNC_VARIABLE
+/*
+    初始化内存分配器
+*/
+static void init_alloc_NOT_VARIABLE()
+{
+    alloc_cache=var_cache;
+}
+
+/*
+    分配内存
+*/
+static NOT_VARIABLE *alloc_NOT_VARIABLE()
+{
+    alloc_cache->start=NULL;
+    alloc_cache->end=NULL;
+    alloc_cache->prev=NULL;
+    alloc_cache->next=NULL;
+    return alloc_cache++;
+}
+#endif
