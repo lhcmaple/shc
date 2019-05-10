@@ -49,6 +49,9 @@ static int interpretcmd(char *cmd)
     CMD_ARG *p_arg_cache=cmd_arg_cache,
         *p_pipe_cache=cmd_pipe_cache,
         *p_part_cache=cmd_part_cache;
+    CMD_ARG *p_arg;
+    PIPE_ARG *p_pipe;
+    PART_ARG *p_part;
 #ifdef FUNC_VARIABLE
     NOT_VARIABLE **p_var_cache=not_var;
     NOT_VARIABLE *p_var_temp;
@@ -248,19 +251,65 @@ static int interpretcmd(char *cmd)
     cmd_part[i_part++]=NULL;
 
 #ifdef FUNC_VARIABLE
-    for(int i=0;cmd_arg_cache[i];++i)
+    // for(int i=0;cmd_arg_cache[i];++i)
+    // {
+    //     p_var_temp=not_var[i];
+    //     if(p_var_temp!=NULL)
+    //     {
+    //         do{
+    //             for(char *p=p_var_temp->start;p<=p_var_temp->end;++p)
+    //             {
+    //                 printf("%c",*p);
+    //             }
+    //             printf("\n");
+    //         }while((p_var_temp=p_var_temp->next)!=not_var[i]);
+    //     }
+    // }
+    p_part=cmd_part;
+    while(*p_part)
     {
-        p_var_temp=not_var[i];
-        if(p_var_temp!=NULL)
+        p_pipe=*p_part;
+        while(*p_pipe)
         {
-            do{
-                for(char *p=p_var_temp->start;p<=p_var_temp->end;++p)
+            p_arg=*p_pipe;
+            while(*p_arg)
+            {
+                p=*p_arg;
+                *p_arg=cmd;
+                while(*p)
                 {
-                    printf("%c",*p);
+                    if(*p=='$')
+                    {
+                        ++p;
+                        switch(*p)
+                        {
+                            case '{':
+                                ++p;
+                                p_cache=strchr(p,'}');
+                                if(p_cache==NULL)
+                                    exit(ERROR_VARIABLEEXIT);
+                                *p_cache='\0';
+                                p=getenv(p);
+                                while(*p)
+                                    *(cmd++)=*(p++);
+                                ++p;
+                            default:
+                                p=getenv(p);
+                                while(*p)
+                                    *(cmd++)=*(p++);
+                        }
+                    }
+                    else
+                    {
+                        *(cmd++)=*(p++);
+                    }
                 }
-                printf("\n");
-            }while((p_var_temp=p_var_temp->next)!=not_var[i]);
+                *(cmd++)=*(p++);
+                ++p_arg;
+            }
+            ++p_pipe;
         }
+        ++p_part;
     }
 #endif
 
